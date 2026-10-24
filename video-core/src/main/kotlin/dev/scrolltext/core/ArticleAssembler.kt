@@ -130,7 +130,7 @@ class ArticleAssembler(initial: List<ArticleLine> = emptyList(), duplicates: Int
     }
 
     fun gap(at: Double, timeMs: Long) {
-        val line = ArticleLine(nextId++, "此处画面无法可靠衔接，请回看录屏补充。", Box(0.0, at, 1.0, at + 1), 0.0, "", timeMs, BlockKind.GAP, needsReview = true)
+        val line = ArticleLine(nextId++, ArticleExport.gapText, Box(0.0, at, 1.0, at + 1), 0.0, "", timeMs, BlockKind.GAP, needsReview = true)
         lines += line; index(line)
     }
 

@@ -53,17 +53,19 @@ internal fun SetupSheet(overlay: Boolean, grant: () -> Unit, dismiss: () -> Unit
 @Composable
 internal fun GuideSheet(dismiss: () -> Unit, batterySettings: () -> Unit) {
     ArchiveSheet("使用说明", dismiss) {
-        Text("聊天录屏：新建纪念册 → 导入聊天录屏，框选消息后整理。可暂停并继续，图片和表情保存静态截图。", style = MaterialTheme.typography.bodyMedium)
-        Text("文章：切换到文章，导入滚动录屏，框选正文后提取。旧卷读文章可在设置中导入 ZIP 阅读包。", style = MaterialTheme.typography.bodyMedium)
-            listOf("1. 开始" to "新建采集，允许悬浮窗和整个屏幕共享。进入聊天页，点“开始识别”。",
-                "2. 选范围" to "只框住消息，避开标题和输入框。拖动悬浮窗左侧可移位；“更多”可重调范围。",
-                "3. 滚动" to "每滑半屏停留 1～2 秒，保留重叠。跳页先暂停，换聊天先结束。",
-                "4. 保存" to "点“结束”保存；点击消息可校对。导出 ZIP 包含原图、HTML、JSON 和 TXT。",
-                "后台运行" to "保持亮屏，允许通知和后台运行。锁屏或进程退出后，需重新授权继续。",
-                "识别范围" to "图片、语音和视频只保留可见画面，不恢复原始附件。复杂背景、群昵称和引用需核对，未显示的时间不推断。"
-            ).forEach { (title, body) -> Column { Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp); Spacer(Modifier.height(6.dp)); Text(body, color = Ink, fontSize = 14.sp, lineHeight = 22.sp) } }
-            ActionRow("后台运行设置", batterySettings, icon = Icons.Outlined.BatteryStd)
-            Text("卸载前请导出纪念册和文章。", color = Ink, style = MaterialTheme.typography.bodyMedium)
+        listOf(
+            "悬浮窗采集" to "新建纪念册 → 悬浮窗采集。授权后进入聊天页，点“开始识别”并框选消息。每滑半屏停留 1～2 秒，点“结束”保存。",
+            "聊天录屏" to "新建纪念册 → 导入聊天录屏。选择平台和浏览方向，框选消息，点“整理成纪念册”。图片和表情随文字保存为截图。",
+            "文章提取" to "切换到“文章”，导入录屏并框选正文，选择文字或文字与公式，点“提取文章”。",
+            "校对与保存" to "聊天中点击消息；文章中打开“校对”并选择段落。对照原图修改后，打开导出菜单保存。ZIP 阅读包包含原图和阅读页面。"
+        ).forEach { (title, body) ->
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Ink)
+                Text(body, style = MaterialTheme.typography.bodyMedium, color = Ink)
+            }
+        }
+        Text("采集时保持亮屏。录屏识别支持暂停和继续。", style = MaterialTheme.typography.bodyMedium, color = Ink)
+        ActionRow("后台运行设置", batterySettings, icon = Icons.Outlined.BatteryStd)
     }
 }
 

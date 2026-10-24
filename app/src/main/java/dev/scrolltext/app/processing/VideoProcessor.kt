@@ -46,7 +46,7 @@ class VideoProcessor(private val context: Context, private val store: ArticleSto
                 }
                 fun report(message: String) = update(ProcessingState(true, article.id,
                     ((time - config.startMs).toDouble() / max(1, end - config.startMs)).toFloat().coerceIn(0f, .995f) * (if (config.formulas) .85f else 1f), message, article.frames, assembler.lines.size, metrics.elapsedMs))
-                report("正在加载本地识别模型…")
+                report("正在准备识别…")
                 while (true) {
                     currentCoroutineContext().ensureActive()
                     val original = metrics.measureSuspending("decode") { video.sample(time) }
@@ -150,7 +150,7 @@ class VideoProcessor(private val context: Context, private val store: ArticleSto
                             it.latex.ifBlank { "\\text{公式待校对}" }
                         }
                     } catch (e: CancellationException) { throw e }
-                    catch (_: Exception) { metrics.add("failedFormulas"); "\\text{公式识别失败，请校对原图}" }
+                    catch (_: Exception) { metrics.add("failedFormulas"); "\\text{对照原图校对公式}" }
                     finally { bitmap?.recycle() }
                     line.text = line.text.replace(part.marker, latex); line.needsReview = true
                     index++; article.metrics = metrics.snapshot()

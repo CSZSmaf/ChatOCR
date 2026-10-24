@@ -33,7 +33,7 @@ class ChatVideoModel(application: Application) : AndroidViewModel(application) {
                     VideoFrames(context, uri).use { ImportedVideo(uri, name, it.durationMs, thumbnail(it.frame(0))) }
                 }
                 previewTime = 0
-            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "无法打开录屏，请选择可正常播放的视频") }
+            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "请选择相册中可播放的录屏") }
             finally { busy = false }
         }
     }
@@ -46,7 +46,7 @@ class ChatVideoModel(application: Application) : AndroidViewModel(application) {
             try {
                 val bitmap = withContext(Dispatchers.IO) { VideoFrames(getApplication(), current.uri).use { thumbnail(it.frame(time)) } }
                 video = current.copy(preview = bitmap); previewTime = time
-            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "无法预览，请重新选择录屏") }
+            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "请重新选择录屏") }
         }
     }
     fun dismiss() { previewJob?.cancel(); video = null; error = null }
@@ -60,13 +60,13 @@ class ChatVideoModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) { SessionStore(getApplication()).save(session) }
                 launchService(session.id)
                 video = null; opened(session.id)
-            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "无法开始识别，请重试") }
+            } catch (e: Exception) { if (e is CancellationException) throw e; error = UiMessage.failure(e, "请重新开始识别") }
             finally { busy = false }
         }
     }
     fun resume(id: String) {
         if (busy || RecognitionGate.state.value != null) { error = "请先暂停当前识别"; return }
-        runCatching { launchService(id) }.onFailure { error = UiMessage.failure(it, "无法继续识别，请重新打开后重试") }
+        runCatching { launchService(id) }.onFailure { error = UiMessage.failure(it, "请重新打开后继续识别") }
     }
     private fun launchService(id: String) {
         ContextCompat.startForegroundService(getApplication(), Intent(getApplication(), ChatVideoService::class.java).putExtra("sessionId", id))

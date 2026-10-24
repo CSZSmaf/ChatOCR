@@ -111,8 +111,7 @@ import java.util.Locale
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("选取正文区域", style = MaterialTheme.typography.titleLarge)
-                    Text("避开标题栏和底栏", color = Ink, fontSize = 14.sp)
+                    Text("框选正文", style = MaterialTheme.typography.titleLarge)
                 }
                 IconButton(onClick = { expandedCrop = true }) { Icon(Icons.Rounded.OpenInFull, "放大选区", tint = Green) }
             }
@@ -131,11 +130,10 @@ import java.util.Locale
                 Slider(value = previewTime, onValueChange = { previewTime = it }, valueRange = 0f..video.duration.toFloat(), onValueChangeFinished = { model.seekPreview(previewTime.toLong()) })
             }
             Text("识别内容", style = MaterialTheme.typography.titleMedium)
-            ChoiceGroup(listOf("text" to "仅文字", "formulas" to "文字与公式"), if (formulas) "formulas" else "text", { formulas = it == "formulas" })
-            if (formulas) Text("公式识别较慢，完成后请校对。", style = MaterialTheme.typography.bodySmall, color = Ink)
+            ChoiceGroup(listOf("text" to "文字", "formulas" to "文字与公式"), if (formulas) "formulas" else "text", { formulas = it == "formulas" })
             TextField(title, { title = it }, Modifier.fillMaxWidth(), label = { Text("文章标题") }, singleLine = true, colors = archiveFieldColors(), shape = RoundedCornerShape(14.dp))
             TextButton(onClick = { trim = !trim }, contentPadding = PaddingValues(0.dp)) {
-                Icon(Icons.Rounded.ContentCut, null, Modifier.size(16.dp)); Spacer(Modifier.width(8.dp)); Text(if (trim) "收起片段选择" else "只提取部分片段")
+                Icon(Icons.Rounded.ContentCut, null, Modifier.size(16.dp)); Spacer(Modifier.width(8.dp)); Text(if (trim) "收起片段选择" else "选择片段")
             }
             if (trim) Column {
                 Text("${ArticleExport.timeLabel(range.start.toLong())} – ${ArticleExport.timeLabel(range.endInclusive.toLong())}", fontSize = 14.sp, color = Ink)
@@ -186,7 +184,7 @@ import java.util.Locale
             Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("${(state.progress * 100).toInt()}%", fontSize = 36.sp, fontWeight = FontWeight.Light); Text("处理进度", color = Ink, fontSize = 14.sp) }
         }
         Spacer(Modifier.height(32.dp)); Text("提取文章", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(14.dp)); Text(state.message.ifBlank { "启动本地识别…" }, color = Green, fontSize = 14.sp)
+        Spacer(Modifier.height(14.dp)); Text(state.message.ifBlank { "正在准备识别…" }, color = Green, fontSize = 14.sp)
         Spacer(Modifier.height(26.dp))
         Surface(shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(22.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             Stat("${state.frames}", "识别画面"); Stat("${state.lines}", "文章行数"); Stat(ArticleExport.timeLabel(elapsed), "已用时间")
@@ -213,7 +211,7 @@ import java.util.Locale
     }
     if (article.status != "complete" && article.status != "imported") {
         Surface(color = Colors.surfaceContainerLow) { Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(UiMessage.stored(article.message, "已保留草稿，可继续提取"), fontSize = 14.sp, modifier = Modifier.weight(1f))
+            Text(UiMessage.stored(article.message, "可继续提取"), fontSize = 14.sp, modifier = Modifier.weight(1f))
             TextButton(onClick = model::resume) { Text(if (article.checkpoint != null) "继续提取" else "重新提取") }
         } }
     }
@@ -227,7 +225,7 @@ import java.util.Locale
         if (review > 0) Surface(onClick = { tab = 1; onlyReview = true }, color = Colors.surfaceContainerLow) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 22.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.FactCheck, null, Modifier.size(18.dp), tint = Orange); Spacer(Modifier.width(8.dp))
-                Text("$review 处内容待核对", fontSize = 14.sp, color = Orange, modifier = Modifier.weight(1f))
+                Text("$review 处待校对", fontSize = 14.sp, color = Orange, modifier = Modifier.weight(1f))
                 Text("去校对", fontSize = 14.sp, color = Orange); Icon(Icons.Rounded.ChevronRight, null, Modifier.size(18.dp), tint = Orange)
             }
         }
@@ -235,21 +233,21 @@ import java.util.Locale
     }
     else Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(onlyReview, { onlyReview = it }); Text("只看待核对内容", fontSize = 14.sp); Spacer(Modifier.weight(1f)); Spacer(Modifier.width(0.dp))
+            Checkbox(onlyReview, { onlyReview = it }); Text("待校对", fontSize = 14.sp); Spacer(Modifier.weight(1f)); Spacer(Modifier.width(0.dp))
         }
         LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             val rows = if (onlyReview) article.lines.filter { it.needsReview } else article.lines
-            if (rows.isEmpty()) item { Text("暂无待校对内容", color = Ink, modifier = Modifier.padding(20.dp)) }
+            if (rows.isEmpty()) item { Text("待校对 0 处", color = Ink, modifier = Modifier.padding(20.dp)) }
             items(rows, key = { it.id }) { line ->
                 Surface(onClick = { editing = line }, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, if (line.needsReview) Colors.tertiaryContainer else Colors.outlineVariant)) {
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth()) {
-                            Text(when (line.kind) { BlockKind.FORMULA -> "公式"; BlockKind.GAP -> "缺少内容"; else -> if (line.edited) "已编辑" else "正文" }, fontSize = 14.sp, color = if (line.needsReview) Orange else Green)
+                            Text(when (line.kind) { BlockKind.FORMULA -> "公式"; BlockKind.GAP -> "待补充"; else -> if (line.edited) "已编辑" else "正文" }, fontSize = 14.sp, color = if (line.needsReview) Orange else Green)
                             Spacer(Modifier.weight(1f)); Text(ArticleExport.timeLabel(line.timeMs), fontSize = 14.sp, color = Ink)
                         }
-                        Text(line.text, fontSize = 15.sp, lineHeight = 24.sp)
+                        Text(ArticleExport.displayText(line), fontSize = 15.sp, lineHeight = 24.sp)
                         if (line.source.isNotEmpty()) SourceImage(model.store.source(article.id, line.source), Modifier.fillMaxWidth().heightIn(max = 120.dp))
-                        if (line.needsReview) Text(if (line.clipped) "边缘内容可能不完整" else "请核对原图", fontSize = 14.sp, color = Orange)
+                        if (line.needsReview) Text(if (line.clipped) "对照原图补全内容" else "对照原图校对", fontSize = 14.sp, color = Orange)
                     }
                 }
             }
@@ -305,7 +303,7 @@ import java.util.Locale
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val recognition by RecognitionGate.state.collectAsStateWithLifecycle()
-    var text by remember { mutableStateOf(line.text) }
+    var text by remember { mutableStateOf(ArticleExport.displayText(line)) }
     var formula by remember { mutableStateOf(line.kind == BlockKind.FORMULA) }
     var recognizing by remember { mutableStateOf(false) }
     var playback by remember { mutableStateOf(false) }
@@ -337,7 +335,7 @@ import java.util.Locale
                                     try { FormulaEngine(context).use { it.recognize(cut) } } finally { if (cut !== image) cut.recycle() }
                                 }
                                 text = result.latex; formula = true; formulaCrop = false
-                            } catch (e: Exception) { model.error = UiMessage.failure(e, "操作未完成，请重试") }
+                            } catch (e: Exception) { model.error = UiMessage.failure(e, "请重试") }
                             finally { recognizing = false; lease.close() }
                         }
                     }, enabled = !recognizing && recognition == null) { Text(if (recognizing) "正在识别公式…" else "将选区转为 LaTeX") }
@@ -358,12 +356,12 @@ import java.util.Locale
             AndroidView(factory = { ctx -> VideoView(ctx).apply {
                 setVideoURI(Uri.parse(article.config.uri)); setMediaController(MediaController(ctx).also { it.setAnchorView(this) })
                 setOnPreparedListener { seekTo(line.timeMs.toInt()); start() }
-                setOnErrorListener { _, _, _ -> model.error = "原始录屏已移动或不再可访问。"; playback = false; true }
+                setOnErrorListener { _, _, _ -> model.error = "请重新导入原录屏"; playback = false; true }
             } }, modifier = Modifier.fillMaxWidth().height(420.dp), onRelease = { it.stopPlayback() })
             TextButton(onClick = { playback = false }) { Text("关闭播放") }
         } }
     }
-    if (delete) AlertDialog(onDismissRequest = { delete = false }, title = { Text("删除这行内容？") }, text = { Text("只修改提取的文章，原始录屏保留。") },
+    if (delete) AlertDialog(onDismissRequest = { delete = false }, title = { Text("删除这行内容？") }, text = { Text("将从文章中删除这行内容。") },
         confirmButton = { TextButton(onClick = { model.removeLine(line.id); onDismiss() }) { Text("删除") } }, dismissButton = { TextButton(onClick = { delete = false }) { Text("取消") } })
 }
 
@@ -382,7 +380,7 @@ import java.util.Locale
                         ?: error("无法写入所选位置")
                 }
                 onDismiss()
-            } catch (e: Exception) { model.error = "导出失败：" + UiMessage.failure(e, "请重新选择保存位置后重试") }
+            } catch (e: Exception) { model.error = "导出：" + UiMessage.failure(e, "请重新选择保存位置") }
             finally { busy = false; pending = null }
         } else pending = null
     }
@@ -393,7 +391,7 @@ import java.util.Locale
             try {
                 pending = withContext(Dispatchers.IO) { model.store.export(article, format).absolutePath }
                 save.launch(model.store.exportName(article, format))
-            } catch (e: Exception) { model.error = UiMessage.failure(e, "操作未完成，请重试") }
+            } catch (e: Exception) { model.error = UiMessage.failure(e, "请重试") }
             finally { busy = false }
         }
     }
@@ -415,7 +413,7 @@ import java.util.Locale
                                 type = "application/zip"; putExtra(Intent.EXTRA_STREAM, uri)
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }, "分享文章"))
-                        } catch (e: Exception) { model.error = UiMessage.failure(e, "操作未完成，请重试") }
+                        } catch (e: Exception) { model.error = UiMessage.failure(e, "请重试") }
                         finally { busy = false }
                     }
                 }

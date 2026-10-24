@@ -91,7 +91,7 @@ class SessionStore(private val context: Context) {
                 entry("聊天纪念册.html", ChatExport.html(session, true).toByteArray())
                 entry("聊天记录.json", ChatExport.json(session).toByteArray())
                 entry("聊天记录.txt", ChatExport.text(session).toByteArray())
-                entry("阅读说明.txt", "先完整解压，再打开聊天纪念册.html。包内包含聊天文字、结构化记录和截图。时间以聊天画面显示为准。图片与表情为静态截图，录屏原文件需另行保存。".toByteArray())
+                entry("阅读说明.txt", "完整解压后，打开“聊天纪念册.html”阅读。聊天记录另存为 JSON 和 TXT，图片与表情以截图保存。".toByteArray())
                 session.frames.forEach { frame ->
                     val file = frameFile(session.id, frame.id)
                     check(file.isFile) { "来源画面缺失，请重新采集后导出" }

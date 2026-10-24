@@ -55,7 +55,7 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
     val active = (capture.active && capture.sessionId == id) || videoActive
     LaunchedEffect(id, revision, capture.active, video.running) {
         runCatching { withContext(Dispatchers.IO) { store.load(id).let { ReaderData(it, it.ordered()) } } }
-            .onSuccess { data = it; error = "" }.onFailure { if (it is CancellationException) throw it; error = UiMessage.failure(it, "无法读取纪念册，请重新打开后重试") }
+            .onSuccess { data = it; error = "" }.onFailure { if (it is CancellationException) throw it; error = UiMessage.failure(it, "请重新打开纪念册") }
     }
     val s = data?.session
     Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -76,17 +76,17 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
         }
     }
     if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(20.dp))
-    if (notice.startsWith("正在导出") || notice.startsWith("导出") || notice.startsWith("删除失败")) {
+    if (notice.startsWith("正在导出") || notice.startsWith("导出") || notice.startsWith("删除：")) {
         if (notice.startsWith("正在导出")) LinearProgressIndicator(Modifier.fillMaxWidth())
         Text(notice, fontSize = 14.sp, lineHeight = 18.sp,
-            color = if (notice.contains("失败")) MaterialTheme.colorScheme.error else Green,
+            color = if (notice.startsWith("导出：") || notice.startsWith("删除：")) MaterialTheme.colorScheme.error else Green,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
     }
     if (s == null) { if (error.isBlank()) LinearProgressIndicator(Modifier.fillMaxWidth()); return }
     val ordered = data!!.ordered
     val messages = remember(ordered, query, onlyReview) {
         ordered.filter { (!onlyReview || (!it.reviewed && it.flags.isNotEmpty())) &&
-            (query.isBlank() || it.displayText.contains(query, true) || ChatExport.speaker(it, s).contains(query, true)) }
+            (query.isBlank() || ChatPresentation.text(it).contains(query, true) || ChatExport.speaker(it, s).contains(query, true)) }
     }
     val stored = remember(id) { preferences.position(id) }
     val readingState = rememberLazyListState(stored.first.coerceAtMost(ordered.lastIndex.coerceAtLeast(0)), stored.second)
@@ -118,7 +118,7 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
             Text("已整理 ${video.count} 条 · ${videoTime(video.positionMs)}", color = Green, modifier = Modifier.padding(vertical = 8.dp))
         }
         if (!active && video.sessionId == id && video.message.isNotBlank()) Text(video.message, color = MaterialTheme.colorScheme.error)
-        if (!active && s.error != null) Text(UiMessage.stored(s.error, "识别已暂停，请重新打开后继续"), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp))
+        if (!active && s.error != null) Text(UiMessage.stored(s.error, "请重新打开后继续识别"), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp))
         if (active && !videoActive) Text(capture.hint, color = Green, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
         if (query.isNotBlank()) Text("${messages.size} 条结果", color = Ink, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
     }
@@ -129,16 +129,16 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
             Column(Modifier.fillMaxWidth().padding(vertical = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(if (onlyReview && query.isBlank()) Icons.Outlined.TaskAlt else Icons.Outlined.Forum, null, Modifier.size(32.dp), tint = Green)
                 Spacer(Modifier.height(12.dp))
-                Text(when { query.isNotBlank() -> "未找到记录"; onlyReview -> "暂无待校对项"; videoActive -> "正在整理…"; else -> "暂无记录" }, fontFamily = FontFamily.Serif, fontSize = 18.sp)
+                Text(when { query.isNotBlank() -> "换个关键词搜索"; onlyReview -> "待校对 0 条"; videoActive -> "正在整理…"; else -> "开始采集，整理聊天记录" }, fontFamily = FontFamily.Serif, fontSize = 18.sp)
             }
         }
         items(messages, key = { it.id }, contentType = { it.kind }) { message ->
             val edit = { if (!active) { editError = ""; editing = message } }
             when (message.kind) {
-                Kind.TIME -> Text(message.displayText, color = Ink, fontSize = 14.sp,
+                Kind.TIME -> Text(ChatPresentation.text(message), color = Ink, fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth().clickable(enabled = !active, onClick = edit).padding(vertical = 8.dp), textAlign = TextAlign.Center)
                 Kind.GAP -> Surface(color = Peach, shape = RoundedCornerShape(12.dp), modifier = Modifier.clickable(enabled = !active, onClick = edit)) {
-                    Text(message.displayText, Modifier.padding(14.dp), fontSize = 14.sp, color = Amber)
+                    Text(ChatPresentation.text(message), Modifier.padding(14.dp), fontSize = 14.sp, color = Amber)
                 }
                 else -> Column(Modifier.fillMaxWidth(), horizontalAlignment = if (message.side == Side.RIGHT) Alignment.End else Alignment.Start) {
                     Text(ChatExport.speaker(message, s), color = Ink, fontSize = 14.sp)
@@ -148,7 +148,7 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
                         contentColor = if (message.side == Side.RIGHT) MaterialTheme.colorScheme.onPrimaryContainer else Ink,
                         shape = RoundedCornerShape(if (message.side == Side.RIGHT) 18.dp else 5.dp, if (message.side == Side.RIGHT) 5.dp else 18.dp, 18.dp, 18.dp),
                         modifier = Modifier.widthIn(max = 340.dp).clickable(enabled = !active, onClick = edit)) {
-                        Text(message.displayText, Modifier.padding(14.dp, 11.dp), fontSize = textSize.sp, lineHeight = (textSize * 1.6f).sp)
+                        Text(ChatPresentation.text(message), Modifier.padding(14.dp, 11.dp), fontSize = textSize.sp, lineHeight = (textSize * 1.6f).sp)
                     }
                     if (!onlyReview && !message.reviewed && message.flags.isNotEmpty()) Text("待校对", color = Amber,
                         fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
@@ -164,7 +164,7 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
         }
     }
     if (confirmDelete) AlertDialog(onDismissRequest = { confirmDelete = false }, title = { Text("删除这本纪念册？") },
-        text = { Text("将删除本机的聊天文字和来源画面。已导出的文件保留。") },
+        text = { Text("将删除这本纪念册的文字和图片。") },
         confirmButton = { TextButton({ confirmDelete = false; delete(id) }) { Text("删除", color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton({ confirmDelete = false }) { Text("取消") } })
     editing?.let { message ->
@@ -187,7 +187,7 @@ internal fun ReaderScreen(id: String, store: SessionStore, capture: CaptureStatu
                         editing = if (next) (fresh.ordered.drop(index + 1) + fresh.ordered.take(index))
                             .firstOrNull { !it.reviewed && it.flags.isNotEmpty() } else null
                         changed()
-                    }.onFailure { editError = UiMessage.failure(it, "保存失败，请检查剩余空间后重试") }
+                    }.onFailure { editError = UiMessage.failure(it, "请检查存储空间后重新保存") }
                     saving = false
                 }
             })

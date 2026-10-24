@@ -1,6 +1,14 @@
 package dev.scrolltext.core
 
 object ArticleExport {
+    const val gapText = "回看录屏，补全这段内容。"
+    fun displayText(line: ArticleLine): String = when {
+        line.edited -> line.text
+        line.kind == BlockKind.GAP && line.text == "此处画面无法可靠衔接，请回看录屏补充。" -> gapText
+        line.kind == BlockKind.FORMULA && line.text == "\\text{公式识别失败，请校对原图}" -> "\\text{对照原图校对公式}"
+        else -> line.text
+    }
+
     fun escapeHtml(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
 
     /** Join wrapped prose geometrically; explicit gaps, equations and larger paragraph spaces remain. */
@@ -13,7 +21,7 @@ object ArticleExport {
         for (line in sorted) {
             if (line.kind != BlockKind.TEXT) {
                 flush()
-                result += if (line.kind == BlockKind.FORMULA) "\$\$\n${line.text}\n\$\$" else "> [待补充 · ${timeLabel(line.timeMs)}] ${line.text}"
+                result += if (line.kind == BlockKind.FORMULA) "\$\$\n${displayText(line)}\n\$\$" else "> [待补充 · ${timeLabel(line.timeMs)}] ${displayText(line)}"
                 previous = null; continue
             }
             val p = previous
@@ -33,7 +41,7 @@ object ArticleExport {
     fun timeLabel(ms: Long) = "%02d:%02d".format(ms / 60000, ms / 1000 % 60)
     fun hasMath(line: ArticleLine) = line.kind == BlockKind.FORMULA || line.formulaParts.isNotEmpty() || Regex("\\$[^$]+\\$").containsMatchIn(line.text)
     fun markdown(title: String, lines: List<ArticleLine>) = "# $title\n\n" +
-        (if (lines.any { it.needsReview && hasMath(it) }) "> 公式为未经校对的 LaTeX 识别候选，请对照原图核对符号。\n\n" else "") +
+        (if (lines.any { it.needsReview && hasMath(it) }) "> 公式待校对，可对照原图修改。\n\n" else "") +
         paragraphs(lines).joinToString("\n\n") + "\n"
 
     fun html(title: String, lines: List<ArticleLine>, fontSize: Int = 18, dark: Boolean = false, showHeader: Boolean = true, sourceUrl: (ArticleLine) -> String? = { null }): String {
@@ -51,7 +59,7 @@ object ArticleExport {
                 if (source == null) group += line else {
                     flush()
                     append("<figure><img src=\"${escapeHtml(source)}\" alt=\"含公式内容的原始画面\"><figcaption>公式待校对 · 显示原图</figcaption>")
-                    append("<details class=candidate><summary>查看公式识别结果</summary><pre>${escapeHtml(line.text)}</pre></details></figure>")
+                    append("<details class=candidate><summary>查看公式识别结果</summary><pre>${escapeHtml(displayText(line))}</pre></details></figure>")
                 }
             }
             flush()

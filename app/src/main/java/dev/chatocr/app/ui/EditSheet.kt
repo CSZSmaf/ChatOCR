@@ -27,7 +27,7 @@ import kotlinx.coroutines.withContext
 internal fun EditSheet(message: Message, session: Session, store: SessionStore, saving: Boolean, error: String,
     remaining: Int, dismiss: () -> Unit, save: (String, String, Boolean) -> Unit) {
     key(message.id) {
-        var text by rememberSaveable { mutableStateOf(message.displayText) }
+        var text by rememberSaveable { mutableStateOf(ChatPresentation.text(message)) }
         var sender by rememberSaveable { mutableStateOf(ChatExport.speaker(message, session)) }
         var frameIndex by remember { mutableIntStateOf(message.evidence.indexOfFirst { it.frameId == message.media?.frameId }.coerceAtLeast(0)) }
         var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -49,7 +49,7 @@ internal fun EditSheet(message: Message, session: Session, store: SessionStore, 
                         Bitmap.createBitmap(source, l, t, r - l, b - t).also { if (it !== source) source.recycle() }
                     }
                 }
-            }.onSuccess { bitmap = it }.onFailure { imageError = UiMessage.failure(it, "原图无法打开") }
+            }.onSuccess { bitmap = it }.onFailure { imageError = UiMessage.failure(it, "请重新打开原图") }
         }
         ArchiveSheet("校对", dismiss, closeEnabled = !saving, footer = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -61,7 +61,7 @@ internal fun EditSheet(message: Message, session: Session, store: SessionStore, 
             }
         }) {
                 if (message.flags.isNotEmpty()) Surface(color = Peach, shape = RoundedCornerShape(10.dp)) {
-                    Text(message.flags.joinToString(" · "), color = Amber, style = MaterialTheme.typography.bodyMedium,
+                    Text(ChatPresentation.reviewHints(message).joinToString(" · "), color = Amber, style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.fillMaxWidth().padding(12.dp))
                 }
                 if (evidence != null) {
@@ -86,7 +86,7 @@ internal fun EditSheet(message: Message, session: Session, store: SessionStore, 
                     enabled = !saving, shape = RoundedCornerShape(14.dp), colors = archiveFieldColors())
                 TextButton({ showReadings = !showReadings }) { Text(if (showReadings) "收起识别原文" else "识别原文与备选", fontSize = 14.sp) }
                 if (showReadings) {
-                    Text("识别原文：${message.text}", color = Ink, fontSize = 14.sp)
+                    Text("识别原文：${ChatPresentation.text(message.copy(editedText = null))}", color = Ink, fontSize = 14.sp)
                     val variants = message.variants.filter { it != message.text }
                     if (variants.isNotEmpty()) Text("其他识别结果：\n${variants.joinToString("\n / \n")}", color = Ink, fontSize = 14.sp)
                 }

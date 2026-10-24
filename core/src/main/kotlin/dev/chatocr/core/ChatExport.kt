@@ -22,17 +22,17 @@ object ChatExport {
     }
     fun escape(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
     fun speaker(m: Message, s: Session): String = m.sender?.takeIf { it.isNotBlank() } ?: when (m.side) {
-        Side.LEFT -> if (s.config.group) "群成员（未确认）" else s.config.leftName
+        Side.LEFT -> if (s.config.group) "群成员 · 待确认" else s.config.leftName
         Side.RIGHT -> s.config.rightName
         Side.SYSTEM -> "时间 / 系统"
         Side.UNKNOWN -> "发送方待确认"
     }
     fun text(session: Session): String = buildString {
         appendLine(session.config.title); appendLine("${session.config.platform} · ${session.count()} 条 · 拾语整理")
-        appendLine("时间以聊天画面显示为准。\n")
+        appendLine("时间取自聊天画面。\n")
         session.ordered().forEach { m ->
-            appendLine(if (m.kind == Kind.TIME || m.kind == Kind.GAP) "—— ${m.displayText} ——" else "${speaker(m, session)}：${m.displayText}")
-            if (!m.reviewed && m.flags.isNotEmpty()) appendLine("[待校对：${m.flags.joinToString("；")}]")
+            appendLine(if (m.kind == Kind.TIME || m.kind == Kind.GAP) "—— ${ChatPresentation.text(m)} ——" else "${speaker(m, session)}：${ChatPresentation.text(m)}")
+            if (!m.reviewed && m.flags.isNotEmpty()) appendLine("[待校对：${ChatPresentation.reviewHints(m).joinToString("；")}]")
             appendLine()
         }
     }
@@ -48,15 +48,15 @@ object ChatExport {
         session.ordered().forEach { m ->
             when (m.kind) {
                 Kind.TIME -> append("<div class=time>${escape(m.displayText)}</div>")
-                Kind.GAP -> append("<div class=gap>${escape(m.displayText)}</div>")
+                Kind.GAP -> append("<div class=gap>${escape(ChatPresentation.text(m))}</div>")
                 else -> {
                     append("<article class=\"row ${if (m.side == Side.RIGHT) "right" else "left"}\"><div class=name>${escape(speaker(m, session))}</div>")
-                    if (m.kind != Kind.MEDIA || m.media == null || (m.editedText != null && m.editedText != m.text)) append("<div class=bubble>${escape(m.displayText)}</div>")
+                    if (m.kind != Kind.MEDIA || m.media == null || (m.editedText != null && m.editedText != m.text)) append("<div class=bubble>${escape(ChatPresentation.text(m))}</div>")
                     if (m.kind == Kind.MEDIA) {
                         val source = mediaSource?.invoke(m) ?: if (evidence) m.media?.file else null
                         if (source != null) append("<img src=\"${escape(source)}\" alt=\"图片 / 表情的截图\" style=\"max-width:80%;max-height:420px;object-fit:contain;border-radius:12px\">")
                     }
-                    if (!m.reviewed && m.flags.isNotEmpty()) append("<div class=flag>待校对 · ${escape(m.flags.joinToString(" / "))}</div>")
+                    if (!m.reviewed && m.flags.isNotEmpty()) append("<div class=flag>待校对 · ${escape(ChatPresentation.reviewHints(m).joinToString(" / "))}</div>")
                     if (evidence && m.evidence.isNotEmpty()) {
                         append("<details><summary>查看来源画面</summary>")
                         m.evidence.forEach { e ->
@@ -70,6 +70,6 @@ object ChatExport {
                 }
             }
         }
-        append("<footer>由拾语整理。时间以聊天画面为准，图片为屏幕截图。</footer></main></body></html>")
+        append("<footer>拾语 · 聊天纪念册</footer></main></body></html>")
     }
 }

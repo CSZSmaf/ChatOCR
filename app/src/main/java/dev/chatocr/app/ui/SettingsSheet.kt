@@ -35,7 +35,7 @@ internal fun SettingsSheet(theme: String, textSize: Float, dismiss: () -> Unit, 
         }
         Surface(color = Panel, shape = RoundedCornerShape(16.dp)) {
             Column {
-                ActionRow("导入卷读阅读包", importArticles, icon = Icons.Outlined.FolderOpen)
+                ActionRow("导入阅读包", importArticles, icon = Icons.Outlined.FolderOpen)
                 ActionRow("使用说明", guide, icon = Icons.Outlined.HelpOutline)
                 ActionRow("后台运行设置", batterySettings, icon = Icons.Outlined.BatteryStd)
                 ActionRow("关于", about, icon = Icons.Outlined.Info)

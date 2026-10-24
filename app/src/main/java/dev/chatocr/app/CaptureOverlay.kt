@@ -119,7 +119,7 @@ private class CropView(context: Context, var top: Float, var bottom: Float, priv
     private var dragging = 0
     private val location = IntArray(2)
     private val buttonRect = RectF()
-    init { contentDescription = "拖动上下边线圈选聊天消息，点击顶部保存范围"; setLayerType(LAYER_TYPE_SOFTWARE, null) }
+    init { contentDescription = "拖动上下边线框选消息，点击顶部确认"; setLayerType(LAYER_TYPE_SOFTWARE, null) }
     override fun onDraw(canvas: Canvas) {
         getLocationOnScreen(location)
         val y1 = top * screenHeight - location[1]; val y2 = bottom * screenHeight - location[1]
@@ -128,7 +128,7 @@ private class CropView(context: Context, var top: Float, var bottom: Float, priv
         canvas.drawLine(0f, y1, width.toFloat(), y1, p); canvas.drawLine(0f, y2, width.toFloat(), y2, p)
         canvas.drawCircle(width / 2f, y1, 10 * d, p); canvas.drawCircle(width / 2f, y2, 10 * d, p)
         p.color = Color.WHITE; p.textSize = 14 * d; p.textAlign = Paint.Align.CENTER
-        canvas.drawText("拖动上下边线，只框住聊天内容", width / 2f, (height - 36 * d), p)
+        canvas.drawText("拖动上下边线，框选聊天消息", width / 2f, (height - 36 * d), p)
         p.color = Color.rgb(35, 107, 92); buttonRect.set(width * .22f, 24 * d, width * .78f, 70 * d); canvas.drawRoundRect(buttonRect, 16 * d, 16 * d, p)
         p.color = Color.WHITE; canvas.drawText(if (startAfter) "确认范围并开始" else "保存范围", width / 2f, 53 * d, p)
     }

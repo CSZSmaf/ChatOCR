@@ -84,7 +84,7 @@ fun ChatApp(store: SessionStore, revision: Int, notice: String, overlayAllowed: 
     }
     LaunchedEffect(revision, capture.active, chatVideo.running, refresh, selected) {
         runCatching { withContext(Dispatchers.IO) { store.list() } }.onSuccess { summaries = it; localError = "" }
-            .onFailure { if (it is CancellationException) throw it; localError = UiMessage.failure(it, "无法读取收藏，请重新打开后重试") }
+            .onFailure { if (it is CancellationException) throw it; localError = UiMessage.failure(it, "请重新打开书架") }
         loading = false
     }
     BackHandler(library == "chats" && selected != null) { selected = null }
@@ -127,7 +127,7 @@ fun ChatApp(store: SessionStore, revision: Int, notice: String, overlayAllowed: 
                     delete = { target -> scope.launch {
                         runCatching { withContext(Dispatchers.IO) { store.delete(target); preferences.forget(target) } }
                             .onSuccess { selected = null; lastSession = preferences.lastSession; refresh++ }
-                            .onFailure { localError = UiMessage.failure(it, "删除失败，请重试") }
+                            .onFailure { localError = UiMessage.failure(it, "删除：请重新打开纪念册后重试") }
                     } }, endCapture = { if (chatVideo.running && chatVideo.sessionId == id) chatVideoModel.pause() else endCapture() }) }
                 else home()
             }

@@ -4,6 +4,28 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ExportPresentationTest {
+    @Test fun legacyReviewCopyChangesOnlyPresentation() {
+        val gap = Message(text = "画面之间缺少可靠重叠；这里可能有遗漏或重复，请核对原图。", side = Side.SYSTEM,
+            kind = Kind.GAP, y = 0f, segment = 0, flags = mutableListOf("连续性待核对"))
+        val record = Message(text = "明天可能不去了", side = Side.LEFT, kind = Kind.TEXT, y = 10f, segment = 0,
+            flags = mutableListOf("多帧文字不一致", "两次识别文字不同，请核对", "画面边缘，可能不完整"))
+        val session = Session(messages = mutableListOf(gap, record))
+        val stored = ChatExport.json(session)
+        assertEquals(listOf("校对文字", "补全边缘内容"), ChatPresentation.reviewHints(record))
+        assertEquals(record.text, ChatPresentation.text(record))
+        for (export in listOf(ChatExport.text(session), ChatExport.html(session))) {
+            assertTrue(export.contains(ChatPresentation.gapText))
+            assertTrue(export.contains(record.text))
+            assertFalse(export.contains(gap.text))
+            assertFalse(export.contains("多帧文字不一致"))
+        }
+        assertEquals(stored, ChatExport.json(session))
+        gap.editedText = gap.text
+        assertEquals(gap.editedText, ChatPresentation.text(gap))
+        assertTrue(ChatExport.text(session).contains(gap.editedText!!))
+        assertEquals(gap.text, ChatPresentation.text(gap.copy(kind = Kind.TEXT, editedText = null)))
+    }
+
     @Test fun sourceLinksUseReadableLabelsAndKeepOriginalTargets() {
         val frame = "4b65b828-e06a-4d4f-aac7-14787dcb5cd8"
         val video = "71c57450-851d-4240-8c8b-9be76ed0aace"

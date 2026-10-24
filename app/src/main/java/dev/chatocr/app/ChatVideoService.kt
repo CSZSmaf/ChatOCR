@@ -29,7 +29,7 @@ class ChatVideoService : Service() {
         if (task?.isCompleted == false) return START_NOT_STICKY
         id = intent?.getStringExtra("sessionId") ?: run { stopSelf(); return START_NOT_STICKY }
         try { startForeground(32, notification(ChatVideoState(sessionId = id))) }
-        catch (e: Exception) { ChatVideoRuntime.state.value = ChatVideoState(sessionId = id, message = UiMessage.failure(e, "无法开始识别，请重新打开后重试")); stopSelf(); return START_NOT_STICKY }
+        catch (e: Exception) { ChatVideoRuntime.state.value = ChatVideoState(sessionId = id, message = UiMessage.failure(e, "请重新打开后开始识别")); stopSelf(); return START_NOT_STICKY }
         lease = RecognitionGate.acquire(RecognitionKind.CHAT_VIDEO)
         if (lease == null) {
             ChatVideoRuntime.state.value = ChatVideoState(sessionId = id, message = "请先暂停当前识别")
@@ -52,7 +52,7 @@ class ChatVideoService : Service() {
                 }
             } catch (e: Exception) {
                 // Reload the last commit: a failed frame must not save half-mutated dedup state.
-                val message = if (e is CancellationException) "已暂停，可继续识别" else UiMessage.failure(e, "识别已暂停，请重新打开后继续")
+                val message = if (e is CancellationException) "已暂停 · 可继续识别" else UiMessage.failure(e, "请重新打开后继续识别")
                 runCatching { store.load(id).also { it.status = "录屏已暂停"; it.error = message; store.save(it) } }
                 ChatVideoRuntime.state.value = ChatVideoRuntime.state.value.copy(message = message)
             } finally {

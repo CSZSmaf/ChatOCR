@@ -52,7 +52,7 @@ class CaptureService : Service() {
     private var lastObserved: GrayFrame? = null
     private var job: Job? = null
     private var recognitionLease: RecognitionGate.Lease? = null
-    private var hint = "进入聊天页面，点击开始识别并确认范围"
+    private var hint = "进入聊天页，点“开始识别”"
     private val stableTick = object : Runnable {
         override fun run() {
             val now = SystemClock.elapsedRealtime()
@@ -68,13 +68,13 @@ class CaptureService : Service() {
         }
     }
     private val callback = object : MediaProjection.Callback() {
-        override fun onStop() { finishCapture("屏幕共享已结束，已保存当前进度") }
+        override fun onStop() { finishCapture("屏幕共享已结束") }
         override fun onCapturedContentResize(w: Int, h: Int) {
             if (ending) return
             val scale = minOf(1f, 1080f / w)
             val newW = (w * scale).toInt(); val newH = (h * scale).toInt()
             if (newW != width || newH != height) {
-                recording = false; hint = "屏幕尺寸已变化，请调整范围后继续"; publish()
+                recording = false; hint = "请调整识别范围后继续"; publish()
                 captureHandler.post {
                     resize(newW, newH)
                     scope.launch { job?.join(); previous = null; lastObserved = null }
@@ -82,12 +82,12 @@ class CaptureService : Service() {
             }
         }
         override fun onCapturedContentVisibilityChanged(isVisible: Boolean) {
-            if (!isVisible && recording) { recording = false; hint = "共享的应用不可见，已暂停"; publish() }
+            if (!isVisible && recording) { recording = false; hint = "已暂停 · 返回聊天页继续"; publish() }
         }
     }
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == Intent.ACTION_SCREEN_OFF) finishCapture("锁屏已停止识别，进度已保存")
+            if (intent?.action == Intent.ACTION_SCREEN_OFF) finishCapture("采集已结束")
         }
     }
     override fun onCreate() {
@@ -142,10 +142,10 @@ class CaptureService : Service() {
                     previous = null; lastObserved = null
                     runCatching { store.save(session!!) }.onFailure { fail(it) }
                 }
-                hint = "范围已更新，点击开始识别"; publish()
+                hint = "范围已更新 · 点“开始识别”"; publish()
             }).also { it.show() }
             publish()
-        } catch (e: Exception) { fail(e); finishCapture("无法开启采集，请重新授权后重试") }
+        } catch (e: Exception) { fail(e); finishCapture("请重新授权屏幕共享后采集") }
     }
     private fun makeReader(w: Int, h: Int): ImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 3).also { r ->
         r.setOnImageAvailableListener({ source -> receive(source) }, captureHandler)
@@ -197,7 +197,7 @@ class CaptureService : Service() {
             val gray = PageOcr.gray(bitmap)
             if (lastObserved?.let { PageOcr.difference(it, gray) < .7 } == true) return
             if (filesDir.usableSpace < 150L * 1024 * 1024) {
-                recording = false; hint = "可用空间不足 150 MB，已暂停；请先导出或释放空间"; publish(); return
+                recording = false; hint = "已暂停 · 请释放至少 150 MB 空间"; publish(); return
             }
             val shift = previous?.let { MotionMatcher.shift(it, gray) }?.let { it * 1000f / gray.width }
             val result = frameProcessor!!.process(bitmap, shift)
@@ -207,9 +207,9 @@ class CaptureService : Service() {
             lastObserved = gray
             if (result.count > 0) previous = gray
             hint = when {
-                result.count == 0 -> "未识别到文字，已保存原图；请检查范围或屏幕共享"
-                merge.gap -> "发现缺少重叠，已标记；请慢滑并保留半屏重叠"
-                else -> "已保存 ${s.count()} 条 · 请缓慢滚动，每半屏稍作停留"
+                result.count == 0 -> "已保存原图 · 请框选清晰的聊天文字"
+                merge.gap -> "请每次滑动半屏，停留 1～2 秒"
+                else -> "已保存 ${s.count()} 条"
             }
             publish()
         } catch (e: Exception) {
@@ -218,15 +218,15 @@ class CaptureService : Service() {
     }
     private fun fail(error: Throwable) {
         recording = false
-        hint = UiMessage.failure(error, "识别已暂停，请重新打开后继续")
+        hint = UiMessage.failure(error, "请重新打开后继续识别")
         android.util.Log.e("ChatOCR", "Capture paused", error)
         session?.error = hint; publish()
     }
-    private fun pause() { recording = false; hint = "已暂停，当前进度会保留"; publish() }
+    private fun pause() { recording = false; hint = "已暂停 · 可继续识别"; publish() }
     private fun toggle() {
         if (ending || projection == null) return
         recording = !recording
-        hint = if (recording) "正在识别；每滑动半屏，请停留约 1 秒" else "已暂停，点击悬浮窗继续"
+        hint = if (recording) "每滑半屏，停留 1～2 秒" else "已暂停 · 点击继续"
         publish()
     }
     private fun publish() {
@@ -245,14 +245,14 @@ class CaptureService : Service() {
     private fun notification(): Notification {
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).putExtra("sessionId", session?.id), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         fun action(name: String, request: Int) = PendingIntent.getService(this, request, Intent(this, CaptureService::class.java).setAction(name), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        return NotificationCompat.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_chatocr).setContentTitle(if (recording) "拾语 · 正在采集" else "拾语 · 采集已就绪")
+        return NotificationCompat.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_chatocr).setContentTitle(if (recording) "拾语 · 正在采集" else "拾语 · 采集已暂停")
             .setContentText(hint).setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true)
             .addAction(0, if (recording) "暂停" else "开始", action(ACTION_TOGGLE, 1))
             .addAction(0, "结束并保存", action(ACTION_FINISH, 2)).build()
     }
     private fun finishCapture(reason: String) {
         if (ending) return
-        ending = true; recording = false; hint = "正在保存最后一帧…"; publish()
+        ending = true; recording = false; hint = "正在保存…"; publish()
         // Serialize with frame acquisition, then let the accepted OCR task finish before final save.
         captureHandler.post {
             captureHandler.removeCallbacks(stableTick)
@@ -263,20 +263,20 @@ class CaptureService : Service() {
                 val s = session
                 if (s != null) {
                     s.status = "已保存"; s.updatedAt = System.currentTimeMillis()
-                    runCatching { store.save(s) }.onFailure { s.error = UiMessage.failure(it, "保存失败，请检查剩余空间后重试") }
+                    runCatching { store.save(s) }.onFailure { s.error = UiMessage.failure(it, "请检查存储空间后重新保存") }
                 }
                 withContext(Dispatchers.Main) {
                     CaptureRuntime.state.value = CaptureStatus(false, s?.id, false, s?.count() ?: 0, s?.frames?.size ?: 0, s?.pending() ?: 0, s?.error ?: reason)
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     if (s != null) {
-                        android.widget.Toast.makeText(this@CaptureService, s.error ?: "已保存 ${s.count()} 条，回到拾语即可阅读", android.widget.Toast.LENGTH_LONG).show()
+                        android.widget.Toast.makeText(this@CaptureService, s.error ?: "已保存 ${s.count()} 条 · 返回拾语阅读", android.widget.Toast.LENGTH_LONG).show()
                         val open = PendingIntent.getActivity(this@CaptureService, 2,
                             Intent(this@CaptureService, MainActivity::class.java).putExtra("sessionId", s.id)
                                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                         getSystemService(NotificationManager::class.java).notify(22,
                             NotificationCompat.Builder(this@CaptureService, CHANNEL).setSmallIcon(R.drawable.ic_chatocr)
-                                .setContentTitle(if (s.error == null) "纪念册已保存 · ${s.count()} 条" else "保存需要检查")
+                                .setContentTitle(if (s.error == null) "纪念册已保存 · ${s.count()} 条" else "采集提示")
                                 .setContentText(s.error ?: "${s.config.title} · 点击阅读或导出")
                                 .setContentIntent(open).setAutoCancel(true).build())
                     }

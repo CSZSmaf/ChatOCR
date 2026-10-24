@@ -42,7 +42,7 @@ class ChatAssembler(private val session: Session) {
                 gapY = newest + 90
                 session.offset = gapY + 90
             }
-            session.messages += Message(text = "画面之间缺少可靠重叠；这里可能有遗漏或重复，请核对原图。", side = Side.SYSTEM,
+            session.messages += Message(text = ChatPresentation.gapText, side = Side.SYSTEM,
                 kind = Kind.GAP, y = gapY, segment = session.segment, flags = mutableListOf("连续性待核对"))
         } else if (anchorOffset != null) session.offset = anchorOffset
         var added = 0

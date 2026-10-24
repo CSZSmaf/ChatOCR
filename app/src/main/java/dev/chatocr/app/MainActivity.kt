@@ -42,9 +42,9 @@ class MainActivity : ComponentActivity() {
             val service = Intent(this, CaptureService::class.java).setAction(CaptureService.ACTION_INIT)
                 .putExtra("resultCode", result.resultCode).putExtra("projection", result.data).putExtra("sessionId", id)
             runCatching { ContextCompat.startForegroundService(this, service) }
-                .onSuccess { notice.value = "打开聊天页，点击“开始识别”。" }
-                .onFailure { notice.value = UiMessage.failure(it, "无法开启采集，请重新授权后重试") }
-        } else notice.value = "未开启屏幕共享"
+                .onSuccess { notice.value = "进入聊天页，点“开始识别”" }
+                .onFailure { notice.value = UiMessage.failure(it, "请重新授权屏幕共享后采集") }
+        } else notice.value = "采集前请开启屏幕共享"
         revision.intValue++
     }
     private val exportDocument = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
                         contentResolver.openOutputStream(uri, "wt")?.use { store.export(session, format, it) } ?: error("无法打开保存位置")
                     }
                 }.onSuccess { notice.value = "导出完成" }
-                    .onFailure { notice.value = "导出失败：" + UiMessage.failure(it, "请重新选择保存位置后重试") }
+                    .onFailure { notice.value = "导出：" + UiMessage.failure(it, "请重新选择保存位置") }
             }
         }
     }
@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
     private fun startCapture(config: CaptureConfig, resume: String?) {
         if (!Settings.canDrawOverlays(this)) { notice.value = "请先开启悬浮窗权限"; return }
         if (RecognitionGate.state.value != null) { notice.value = "请先结束当前采集或暂停文章识别"; return }
-        if (CaptureRuntime.state.value.active) { notice.value = "已有采集任务，请先结束当前采集"; return }
+        if (CaptureRuntime.state.value.active) { notice.value = "请先结束当前采集"; return }
         lifecycleScope.launch {
             runCatching {
                 val s = withContext(Dispatchers.IO) {
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
                     notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
                 else requestProjection()
-            }.onFailure { notice.value = UiMessage.failure(it, "无法开启采集，请重新授权后重试") }
+            }.onFailure { notice.value = UiMessage.failure(it, "请重新授权屏幕共享后采集") }
         }
     }
     private fun requestProjection() {

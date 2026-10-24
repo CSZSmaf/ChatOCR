@@ -96,7 +96,7 @@ class ArticleStore(private val context: Context) {
         val dest = File(File(dir, article.id).apply { mkdirs() }, exportName(article, format))
         when (format) {
             "md" -> dest.writeText(ArticleExport.markdown(article.title, article.lines))
-            "txt" -> dest.writeText(article.title + "\n\n" + (if (article.lines.any { it.needsReview && ArticleExport.hasMath(it) }) "【公式为未经校对的 LaTeX 识别候选，请核对原图】\n\n" else "") + ArticleExport.paragraphs(article.lines).joinToString("\n\n"))
+            "txt" -> dest.writeText(article.title + "\n\n" + (if (article.lines.any { it.needsReview && ArticleExport.hasMath(it) }) "【公式待校对，可对照原图修改】\n\n" else "") + ArticleExport.paragraphs(article.lines).joinToString("\n\n"))
             "zip" -> ZipOutputStream(dest.outputStream()).use { zip ->
                 fun bytes(name: String, data: ByteArray) { zip.putNextEntry(ZipEntry(name)); zip.write(data); zip.closeEntry() }
                 bytes("article.md", ArticleExport.markdown(article.title, article.lines).toByteArray())
@@ -172,7 +172,7 @@ class ArticleStore(private val context: Context) {
             json.remove("checkpoint")
             val original = parse(json)
             val imported = original.copy(status = "imported", message =
-                if (original.status in listOf("complete", "imported")) original.message else "导入的是未完成的文章草稿，续提取需重新导入原录屏。", checkpoint = null)
+                if (original.status in listOf("complete", "imported")) original.message else "继续提取请导入原录屏", checkpoint = null)
             require(imported.config.crop.valid()) { "阅读包选区无效" }
             require(imported.lines.size <= 100000 && imported.lines.map { it.id }.distinct().size == imported.lines.size) { "文章行数据无效" }
             val sources = imported.lines.flatMap { listOf(it.source) + it.formulaParts.map { p -> p.source } }

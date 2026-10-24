@@ -68,7 +68,7 @@ internal fun ArchiveHome(books: List<LibraryBook>, loading: Boolean, library: St
                 Column(Modifier.fillMaxWidth().padding(vertical = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Outlined.AutoStories, null, Modifier.size(46.dp), tint = Green)
                     Spacer(Modifier.height(18.dp))
-                    Text(if (query.isNotBlank()) "未找到收藏" else if (articles) "暂无文章" else "暂无纪念册", fontFamily = FontFamily.Serif, fontSize = 19.sp)
+                    Text(if (query.isNotBlank()) "换个名称搜索" else if (articles) "导入第一篇文章" else "新建第一本纪念册", fontFamily = FontFamily.Serif, fontSize = 19.sp)
                 }
             }
             items(visible, key = { it.id }) { book -> AlbumCover(book, book.recent, open) }

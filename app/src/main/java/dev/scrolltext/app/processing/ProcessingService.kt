@@ -37,7 +37,7 @@ class ProcessingService : Service() {
         try { startForeground(31, notification("准备识别…", 0)) }
         catch (e: Exception) {
             recognitionLease?.close(); recognitionLease = null
-            JobBus.state.value = ProcessingState(false, id, message = UiMessage.failure(e, "无法开始识别，请重新打开后重试"))
+            JobBus.state.value = ProcessingState(false, id, message = UiMessage.failure(e, "请重新打开后开始识别"))
             stopSelf(); return START_NOT_STICKY
         }
         recognitionLease = RecognitionGate.acquire(RecognitionKind.ARTICLE)
@@ -50,7 +50,7 @@ class ProcessingService : Service() {
         task = scope.launch {
             val store = ArticleStore(applicationContext)
             val article = runCatching { store.load(id) }.getOrElse {
-                JobBus.state.value = ProcessingState(false, id, message = UiMessage.failure(it, "无法读取文章，请重新打开后重试"))
+                JobBus.state.value = ProcessingState(false, id, message = UiMessage.failure(it, "请重新打开文章"))
                 stopSelf(); return@launch
             }
             try {
@@ -63,14 +63,14 @@ class ProcessingService : Service() {
                     }
                 }
             } catch (e: CancellationException) {
-                article.status = "cancelled"; article.message = "已暂停，草稿已保存，可继续提取。"
-                runCatching { store.save(article) }.onFailure { article.message = "保存失败，请检查手机剩余空间。可从上次自动保存处继续。" }
+                article.status = "cancelled"; article.message = "草稿已保存 · 可继续提取"
+                runCatching { store.save(article) }.onFailure { article.message = "请检查存储空间后继续提取" }
                 JobBus.state.value = JobBus.state.value.copy(running = false, message = article.message)
             } catch (e: Exception) {
                 // A storage/source write can fail after consensus was mutated. Keep the last
                 // committed article and its matching checkpoint, never persist half a frame.
                 val saved = runCatching { store.load(id) }.getOrDefault(article)
-                saved.status = "failed"; saved.message = UiMessage.failure(e, "识别已暂停，请重新打开后继续")
+                saved.status = "failed"; saved.message = UiMessage.failure(e, "请重新打开后继续识别")
                 runCatching { store.save(saved) }
                 JobBus.state.value = JobBus.state.value.copy(running = false, message = saved.message)
             } finally {

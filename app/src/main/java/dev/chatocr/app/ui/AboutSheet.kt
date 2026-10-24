@@ -22,14 +22,14 @@ internal fun AboutSheet(dismiss: () -> Unit) {
             val text by produceState("正在打开…", license.second) {
                 value = withContext(Dispatchers.IO) {
                     runCatching { context.assets.open("licenses/${license.second}").bufferedReader().use { it.readText() } }
-                        .getOrDefault("许可文件暂时无法打开")
+                        .getOrDefault("请重新打开许可文件")
                 }
             }
             ArchiveSheet(license.first, { selected = null }) {
                 SelectionContainer { Text(text, style = MaterialTheme.typography.bodyMedium, color = Ink) }
             }
         }
-        licenses -> ArchiveSheet("第三方许可", { licenses = false }) {
+        licenses -> ArchiveSheet("软件许可", { licenses = false }) {
             Column {
                 listOf("拾语 · AGPL-3.0" to "Shiyu-AGPL-3.0.txt",
                     "ONNX Runtime" to "ONNXRuntime-MIT.txt",
@@ -49,7 +49,7 @@ internal fun AboutSheet(dismiss: () -> Unit) {
                     Text("CHN_wangyijin@proton.me", color = Ink)
                 }
             }
-            ActionRow("第三方许可", { licenses = true })
+            ActionRow("软件许可", { licenses = true })
         }
     }
 }

@@ -14,9 +14,23 @@ import org.junit.runner.RunWith
 class PresentationTest {
     @Test fun internalErrorsNeverBecomeReaderMessages() {
         val internal = "sha256=abcdef0123456789 content://private/file /data/user/0/dev.chatocr.app"
-        assertEquals("无法打开", UiMessage.failure(IllegalStateException(internal), "无法打开"))
+        assertEquals("请重新打开", UiMessage.failure(IllegalStateException(internal), "请重新打开"))
         assertEquals("请重新打开", UiMessage.stored(internal, "请重新打开"))
-        assertEquals("图片较多，请导出 ZIP 阅读包", UiMessage.failure(IllegalStateException("图片较多，请导出 ZIP 阅读包"), "无法导出"))
+        assertEquals("请使用 ZIP 导出全部图片", UiMessage.failure(IllegalStateException("图片较多，请导出 ZIP 阅读包"), "请重新导出"))
+        val hint = UiMessage.failure(IllegalStateException("保存失败，请检查剩余空间后重试"), "请重试")
+        assertEquals("请检查存储空间后重新保存", hint)
+        assertEquals(hint, UiMessage.stored(hint, "请重试"))
+        assertEquals(hint, UiMessage.stored("保存失败，请检查剩余空间后重试", "请重试"))
+        assertEquals("前后内容待校对 3 处", UiMessage.stored("3 处画面衔接需要核对", "请重试"))
+        assertEquals("请重试", UiMessage.stored("3 处画面衔接需要核对 /data/user/0/private", "请重试"))
+    }
+
+    @Test fun cancellationStillPropagates() {
+        val cancellation = kotlinx.coroutines.CancellationException("cancelled")
+        try {
+            UiMessage.failure(cancellation, "请重试")
+            fail("Cancellation should propagate")
+        } catch (actual: kotlinx.coroutines.CancellationException) { assertSame(cancellation, actual) }
     }
 
     @Test fun exportedArticlesHaveReadableSafeNames() {
