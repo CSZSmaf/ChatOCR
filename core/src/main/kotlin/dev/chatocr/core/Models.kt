@@ -26,7 +26,7 @@ data class CaptureConfig(
 )
 data class OcrLine(val text: String, val box: Box, val confidence: Float = 0f)
 data class Candidate(val text: String, val side: Side, val kind: Kind, val box: Box, val flags: List<String> = emptyList(), val sender: String? = null,
-    val recognitionAlternatives: List<String> = emptyList())
+    val recognitionAlternatives: List<String> = emptyList(), val confidence: Float = 0f)
 data class Evidence(val frameId: String, val box: Box)
 data class MediaCrop(val file: String, val frameId: String, val box: Box)
 data class Message(
@@ -47,7 +47,8 @@ data class Message(
     val flags: MutableList<String> = mutableListOf(),
     val evidence: MutableList<Evidence> = mutableListOf(),
     var media: MediaCrop? = null,
-    var senderEvidence: List<Evidence>? = null
+    var senderEvidence: List<Evidence>? = null,
+    var recognitionConfidence: Float? = null
 ) { val displayText get() = editedText ?: text }
 data class FrameRecord(val id: String, val file: String, val capturedAt: Long, val width: Int, val height: Int, val messageCount: Int,
     val videoTimeMs: Long? = null)
@@ -58,7 +59,7 @@ data class ChatVideoSource(
     var nextMs: Long = startMs, var lastObservedMs: Long? = null, var lastAnchorMs: Long? = null,
     var complete: Boolean = false, var scannedFrames: Int = 0
 )
-data class Anchor(val text: String, val side: Side, val centerY: Float)
+data class Anchor(val text: String, val side: Side, val centerY: Float, val partial: Boolean = false)
 data class Session(
     val schemaVersion: Int = 1,
     val coordinateSpace: String = "cropped_image_width_1000",

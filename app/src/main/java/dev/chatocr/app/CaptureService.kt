@@ -47,7 +47,7 @@ class CaptureService : Service() {
     private var lastRecognition = 0L
     private var pendingBitmap: Bitmap? = null
     private var pendingGray: GrayFrame? = null
-    private var stableSince = 0L
+    private val frameGate = StableFrameGate()
     private var previous: GrayFrame? = null
     private var lastObserved: GrayFrame? = null
     private var job: Job? = null
@@ -56,10 +56,10 @@ class CaptureService : Service() {
     private val stableTick = object : Runnable {
         override fun run() {
             val now = SystemClock.elapsedRealtime()
-            if (!recording || ending) {
-                pendingBitmap?.recycle(); pendingBitmap = null; pendingGray = null
-            } else if (!busy.get() && pendingBitmap != null && now - stableSince >= 450 && now - lastRecognition >= (session?.config?.intervalMs ?: 1100)) {
+            if (!ending && !busy.get() && pendingBitmap != null &&
+                (!recording || frameGate.ready(now) && now - lastRecognition >= (session?.config?.intervalMs ?: 1100))) {
                 val accepted = pendingBitmap!!; pendingBitmap = null; pendingGray = null
+                frameGate.reset()
                 busy.set(true); lastRecognition = now
                 publish()
                 job = scope.launch { process(accepted) }
@@ -120,7 +120,7 @@ class CaptureService : Service() {
             check(Settings.canDrawOverlays(this)) { "请先允许悬浮窗权限" }
             val id = requireNotNull(intent.getStringExtra("sessionId"))
             session = store.load(id)
-            frameProcessor = ChatFrameProcessor(session!!, store, dataLock)
+            frameProcessor = ChatFrameProcessor(this, session!!, store, dataLock)
             startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
             val data = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra("projection", Intent::class.java)
                 else @Suppress("DEPRECATION") intent.getParcelableExtra("projection")
@@ -186,7 +186,7 @@ class CaptureService : Service() {
             bitmap = Bitmap.createBitmap(full, 0, top, image.width, bottom - top)
             if (bitmap !== full) full.recycle()
             val gray = PageOcr.gray(bitmap)
-            if (pendingGray == null || PageOcr.difference(pendingGray!!, gray) > .6) stableSince = now
+            frameGate.offer(now, pendingGray == null || PageOcr.difference(pendingGray!!, gray) > .6)
             pendingBitmap?.recycle(); pendingBitmap = bitmap; pendingGray = gray
         } catch (e: Exception) { bitmap?.recycle(); busy.set(false); fail(e) }
         finally { image.close() }
@@ -256,10 +256,11 @@ class CaptureService : Service() {
         // Serialize with frame acquisition, then let the accepted OCR task finish before final save.
         captureHandler.post {
             captureHandler.removeCallbacks(stableTick)
-            pendingBitmap?.recycle(); pendingBitmap = null; pendingGray = null
+            val finalFrame = pendingBitmap; pendingBitmap = null; pendingGray = null; frameGate.reset()
             reader?.setOnImageAvailableListener(null, null)
             scope.launch {
                 job?.join()
+                if (finalFrame != null) { busy.set(true); process(finalFrame) }
                 val s = session
                 if (s != null) {
                     s.status = "已保存"; s.updatedAt = System.currentTimeMillis()

@@ -21,7 +21,7 @@ class PipelineTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SessionStore(context); val source = store.load(sourceId!!)
         val result = Session(config = source.config.copy(title = "边缘残片修复 · 受控画面回放"))
-        val engine = PageOcr(); val assembler = ChatAssembler(result); var previous: GrayFrame? = null
+        val engine = PageOcr(InstrumentationRegistry.getInstrumentation().targetContext); val assembler = ChatAssembler(result); var previous: GrayFrame? = null
         val args = InstrumentationRegistry.getArguments()
         val start = args.getString("startFrame")?.toInt() ?: 0
         val limit = args.getString("limitFrames")?.toInt() ?: source.frames.size
@@ -68,7 +68,7 @@ class PipelineTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SessionStore(context); val source = store.load(sourceId!!)
         val result = Session(config = source.config.copy(title = "Android17 · 滚动验证纪念册"))
-        val recognizer = PageOcr(); var previous: GrayFrame? = null
+        val recognizer = PageOcr(InstrumentationRegistry.getInstrumentation().targetContext); var previous: GrayFrame? = null
         try {
             for (frame in source.frames) {
                 val bitmap = BitmapFactory.decodeFile(store.frameFile(source.id, frame.id).absolutePath)
@@ -94,7 +94,7 @@ class PipelineTest {
     @Test fun bundledChineseOcrStorageAndExports() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val bitmap = fixture(false)
-        val recognizer = PageOcr()
+        val recognizer = PageOcr(InstrumentationRegistry.getInstrumentation().targetContext)
         try {
             val candidates = recognizer.read(bitmap, false)
             val result = candidates.joinToString("|") { it.text }
@@ -119,7 +119,7 @@ class PipelineTest {
         } finally { bitmap.recycle(); recognizer.close() }
     }
     @Test fun darkChatAndRepeatedShortBubbles() = runBlocking {
-        val bitmap = fixture(true); val recognizer = PageOcr()
+        val bitmap = fixture(true); val recognizer = PageOcr(InstrumentationRegistry.getInstrumentation().targetContext)
         try {
             val page = recognizer.read(bitmap, false)
             val s = Session(); val assembler = ChatAssembler(s)

@@ -23,8 +23,7 @@ class AccuracyBenchmarkTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val tag = InstrumentationRegistry.getArguments().getString("reportTag") ?: "current"
         val comparisons = mutableListOf<OcrReadingComparison>()
-        val policy = if (InstrumentationRegistry.getArguments().getString("refineAll") == "true") RefinementPolicy.ALL else RefinementPolicy.OPTIMIZED
-        val engine = PageOcr(policy) { comparisons += it }
+        val engine = PageOcr(context) { comparisons += it }
         val reports = mutableListOf<Map<String, Any>>()
         try {
             for (style in listOf("wechat", "qq", "dark")) for (group in listOf(false, true)) {

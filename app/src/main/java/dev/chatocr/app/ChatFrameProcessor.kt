@@ -5,9 +5,9 @@ import dev.chatocr.core.*
 import java.util.UUID
 
 /** Both screen capture and imported recordings use the same OCR, spatial merge and evidence. */
-class ChatFrameProcessor(private val session: Session, private val store: SessionStore,
+class ChatFrameProcessor(context: android.content.Context, private val session: Session, private val store: SessionStore,
     private val dataLock: Any = Any()) : AutoCloseable {
-    private val ocr = PageOcr()
+    private val ocr = PageOcr(context)
     private val assembler = ChatAssembler(session)
     data class Result(val count: Int, val merge: MergeResult)
 

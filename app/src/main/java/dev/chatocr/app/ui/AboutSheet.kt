@@ -33,6 +33,8 @@ internal fun AboutSheet(dismiss: () -> Unit) {
             Column {
                 listOf("拾语 · AGPL-3.0" to "Shiyu-AGPL-3.0.txt",
                     "ONNX Runtime" to "ONNXRuntime-MIT.txt",
+                    "PaddleOCR" to "PaddleOCR-Apache-2.0.txt",
+                    "RapidOCR" to "RapidOCR-Apache-2.0.txt",
                     "RapidLaTeXOCR" to "RapidLaTeXOCR-MIT.txt",
                     "Pix2Text" to "Pix2Text-MIT.txt",
                     "Ultralytics" to "Ultralytics-AGPL-3.0.txt",

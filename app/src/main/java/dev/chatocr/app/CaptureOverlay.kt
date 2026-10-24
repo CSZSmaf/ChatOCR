@@ -27,6 +27,7 @@ class CaptureOverlay(private val context: Context, private val config: CaptureCo
     private val controlWidth = (56 * context.resources.configuration.fontScale.coerceIn(1f, 1.5f)).toInt()
     private val labelWidth = (136 * context.resources.configuration.fontScale.coerceIn(1f, 1.5f)).toInt()
     private val controlHeight = maxOf(56, (44 * context.resources.configuration.fontScale).toInt())
+    private var started = false
     private var params = layout(WindowManager.LayoutParams.WRAP_CONTENT, dp(controlHeight)).apply { x = dp(12); y = dp(6) }
     private fun dp(v: Int) = (v * density).toInt()
     private fun layout(w: Int, h: Int) = WindowManager.LayoutParams(w, h, WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -76,7 +77,8 @@ class CaptureOverlay(private val context: Context, private val config: CaptureCo
         main = row; wm.addView(row, params)
     }
     fun update(recording: Boolean, count: Int, finishing: Boolean, processing: Boolean = false) {
-        if (::label.isInitialized) label.text = if (finishing) "保存中…" else if (recording) "暂停识别\n$count 条 · ${if (processing) "识别中" else "可滚动"}" else if (count > 0) "继续识别\n$count 条 · 已暂停" else "开始识别"
+        if (recording) started = true
+        if (::label.isInitialized) label.text = if (finishing) "保存中…" else if (recording) "暂停识别\n$count 条 · ${if (processing) "识别中" else "可滚动"}" else if (started || count > 0) "继续识别\n$count 条 · 已暂停" else "开始识别"
         label.isEnabled = !finishing
     }
     private fun showMenu() {

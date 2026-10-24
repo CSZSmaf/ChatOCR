@@ -15,6 +15,7 @@ MODEL = ASSETS / 'models'
 MODEL.mkdir(parents=True, exist_ok=True)
 BASE = 'https://github.com/RapidAI/RapidLaTeXOCR/releases/download/v0.0.0/'
 FILES = {
+    'ch_PP-OCRv5_rec_mobile.onnx': 'https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.10.0/onnx/PP-OCRv5/rec/ch_PP-OCRv5_rec_mobile.onnx',
     'encoder.onnx': BASE + 'encoder.onnx',
     'decoder.onnx': BASE + 'decoder.onnx',
     'image_resizer.onnx': BASE + 'image_resizer.onnx',
@@ -22,6 +23,7 @@ FILES = {
     'mfd.onnx': 'https://huggingface.co/breezedeus/pix2text-mfd-1.5/resolve/f470a885e0fca1d3d2bfa2a54991db7ae01f1861/pix2text-mfd-1.5.onnx',
 }
 EXPECTED = {
+    'ch_PP-OCRv5_rec_mobile.onnx': '5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5',
     'encoder.onnx': '01bf5dc25539ca0cd5b1bd29296ea495977a6ba5f629dc4178277809d26e5e7d',
     'decoder.onnx': 'bd695497bf1b22279b7626f5916c79226e1e244c84355f8da7edfd2d921d0072',
     'image_resizer.onnx': 'e0b075c39700f64d50400f39c8fc186bbb3b5d84d31864008313f376603aca9d',

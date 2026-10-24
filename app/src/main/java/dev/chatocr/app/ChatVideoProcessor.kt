@@ -34,7 +34,7 @@ class ChatVideoProcessor(private val context: Context, private val store: Sessio
             }
             var previous = grayAt(source.lastAnchorMs)
             var observed = grayAt(source.lastObservedMs)
-            ChatFrameProcessor(session, store).use { processor ->
+            ChatFrameProcessor(context, session, store).use { processor ->
                 while (source.nextMs < source.endMs) {
                     currentCoroutineContext().ensureActive()
                     if (shouldPause()) break
@@ -52,7 +52,8 @@ class ChatVideoProcessor(private val context: Context, private val store: Sessio
                                 MotionMatcher.shift(it, gray, .18f) ?: MotionMatcher.shift(it, gray)
                             }
                             val lastTime = source.lastObservedMs
-                            if (!unchanged && previous != null && (shiftPixels == null || kotlin.math.abs(shiftPixels) > gray.height * .18f) && lastTime != null && time - lastTime > 125) {
+                            val minStep = if (shiftPixels == null) 60 else 125
+                            if (!unchanged && previous != null && (shiftPixels == null || kotlin.math.abs(shiftPixels) > gray.height * .18f) && lastTime != null && time - lastTime > minStep) {
                                 time = lastTime + (time - lastTime) / 2
                                 continue
                             }
