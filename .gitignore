@@ -1,0 +1,35 @@
+# Local Android and IDE files
+.gradle/
+.kotlin/
+.idea/
+.tools/
+local.properties
+**/build/
+*.iml
+*.jks
+*.keystore
+*.p12
+*.pem
+.env
+.env.*
+!*.example
+
+# Generated deliverables, device data and local verification evidence
+/dist/
+/verification/
+/docs/design/
+/docs/MERGE-v0.4.md
+/docs/V03-PLAN.md
+/design-qa.md
+*.apk
+*.aab
+*.apks
+*.log
+__pycache__/
+*.pyc
+
+# Versioned download script restores these offline resources
+app/src/main/assets/models/*.onnx
+app/src/main/assets/models/tokenizer.json
+app/src/main/assets/models/*.part
+app/src/main/assets/web/katex/

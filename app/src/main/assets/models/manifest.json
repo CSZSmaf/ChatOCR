@@ -1,0 +1,32 @@
+[
+  {
+    "file": "encoder.onnx",
+    "url": "https://github.com/RapidAI/RapidLaTeXOCR/releases/download/v0.0.0/encoder.onnx",
+    "bytes": 89008136,
+    "sha256": "01bf5dc25539ca0cd5b1bd29296ea495977a6ba5f629dc4178277809d26e5e7d"
+  },
+  {
+    "file": "decoder.onnx",
+    "url": "https://github.com/RapidAI/RapidLaTeXOCR/releases/download/v0.0.0/decoder.onnx",
+    "bytes": 50952726,
+    "sha256": "bd695497bf1b22279b7626f5916c79226e1e244c84355f8da7edfd2d921d0072"
+  },
+  {
+    "file": "image_resizer.onnx",
+    "url": "https://github.com/RapidAI/RapidLaTeXOCR/releases/download/v0.0.0/image_resizer.onnx",
+    "bytes": 38967751,
+    "sha256": "e0b075c39700f64d50400f39c8fc186bbb3b5d84d31864008313f376603aca9d"
+  },
+  {
+    "file": "tokenizer.json",
+    "url": "https://github.com/RapidAI/RapidLaTeXOCR/releases/download/v0.0.0/tokenizer.json",
+    "bytes": 24174,
+    "sha256": "1dc27b18d6a518d0d5ff3f4bb7bd98521fe80ad39e5b2a246d4109f1bb9d5019"
+  },
+  {
+    "file": "mfd.onnx",
+    "url": "https://huggingface.co/breezedeus/pix2text-mfd-1.5/resolve/f470a885e0fca1d3d2bfa2a54991db7ae01f1861/pix2text-mfd-1.5.onnx",
+    "bytes": 80311115,
+    "sha256": "40d4fc852d99bcbf25a9478897d2f49fbbb8f7fdd6569c088cd1c31386293bd7"
+  }
+]

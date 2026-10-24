@@ -1,0 +1,128 @@
+[
+  {
+    "index": 1,
+    "text": "消息001 今天一起散步",
+    "side": "LEFT",
+    "top": 69,
+    "bottom": 145
+  },
+  {
+    "index": 2,
+    "text": "消息002 今天一起散步",
+    "side": "LEFT",
+    "top": 227,
+    "bottom": 303
+  },
+  {
+    "index": 3,
+    "text": "消息003 今天一起散步",
+    "side": "RIGHT",
+    "top": 351,
+    "bottom": 427
+  },
+  {
+    "index": 4,
+    "text": "好的",
+    "side": "LEFT",
+    "top": 509,
+    "bottom": 585
+  },
+  {
+    "index": 5,
+    "text": "好的",
+    "side": "LEFT",
+    "top": 667,
+    "bottom": 743
+  },
+  {
+    "index": 6,
+    "text": "消息006 今天一起散步",
+    "side": "RIGHT",
+    "top": 791,
+    "bottom": 867
+  },
+  {
+    "index": 7,
+    "text": "[image]",
+    "side": "LEFT",
+    "top": 949,
+    "bottom": 1159
+  },
+  {
+    "index": 8,
+    "text": "消息008 今天一起散步",
+    "side": "LEFT",
+    "top": 1241,
+    "bottom": 1317
+  },
+  {
+    "index": 9,
+    "text": "消息009 今天一起散步",
+    "side": "RIGHT",
+    "top": 1365,
+    "bottom": 1441
+  },
+  {
+    "index": 10,
+    "text": "消息010 今天一起散步",
+    "side": "LEFT",
+    "top": 1523,
+    "bottom": 1599
+  },
+  {
+    "index": 11,
+    "text": "消息011 今天一起散步",
+    "side": "LEFT",
+    "top": 1681,
+    "bottom": 1757
+  },
+  {
+    "index": 12,
+    "text": "消息012 今天一起散步",
+    "side": "RIGHT",
+    "top": 1805,
+    "bottom": 1881
+  },
+  {
+    "index": 13,
+    "text": "消息013 今天一起散步",
+    "side": "LEFT",
+    "top": 1963,
+    "bottom": 2039
+  },
+  {
+    "index": 14,
+    "text": "[image]",
+    "side": "LEFT",
+    "top": 2121,
+    "bottom": 2331
+  },
+  {
+    "index": 15,
+    "text": "消息015 今天一起散步",
+    "side": "RIGHT",
+    "top": 2379,
+    "bottom": 2455
+  },
+  {
+    "index": 16,
+    "text": "消息016 今天一起散步",
+    "side": "LEFT",
+    "top": 2537,
+    "bottom": 2613
+  },
+  {
+    "index": 17,
+    "text": "消息017 今天一起散步",
+    "side": "LEFT",
+    "top": 2695,
+    "bottom": 2771
+  },
+  {
+    "index": 18,
+    "text": "消息018 今天一起散步",
+    "side": "RIGHT",
+    "top": 2819,
+    "bottom": 2895
+  }
+]
