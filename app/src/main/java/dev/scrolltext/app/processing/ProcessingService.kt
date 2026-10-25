@@ -86,7 +86,7 @@ class ProcessingService : Service() {
             .putExtra("articleId", currentArticleId).putExtra("library", "articles")
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val cancel = PendingIntent.getService(this, 101, Intent(this, ProcessingService::class.java).setAction("cancel"), PendingIntent.FLAG_IMMUTABLE)
-        return NotificationCompat.Builder(this, "processing").setSmallIcon(R.drawable.ic_scrolltext).setContentTitle("拾语 · 正在提取文章")
+        return NotificationCompat.Builder(this, "processing").setSmallIcon(R.drawable.ic_chatocr).setContentTitle("拾语 · 正在提取文章")
             .setContentText(message).setContentIntent(open).setOngoing(true).setProgress(100, progress, progress == 0)
             .addAction(0, "暂停", cancel).build()
     }
