@@ -1,3 +1,5 @@
+<img src="docs/assets/chatocr-icon.svg" width="80" height="80" alt="拾语 ChatOCR 图标">
+
 # 拾语（ChatOCR）
 
 Android 本地聊天与文章整理工具，将微信、QQ 聊天记录和滚动录屏整理成可阅读、校对、保存的内容。
